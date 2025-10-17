@@ -1,0 +1,11 @@
+{
+  "name": "cakma-royale",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd server && npm install && npm start",
+    "build": "cd server && npm install"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
