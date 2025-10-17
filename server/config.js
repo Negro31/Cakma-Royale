@@ -6,7 +6,7 @@ module.exports = {
   ALLOWED_ORIGINS: [
     'http://localhost:8080',
     'http://127.0.0.1:8080',
-    'https://yourusername.github.io', // Replace with your GitHub Pages URL
+    'https://negro31.github.io', // Your GitHub Pages URL
     'http://localhost:5500', // Live Server default port
     'http://127.0.0.1:5500'
   ],
