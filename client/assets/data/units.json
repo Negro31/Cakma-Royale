@@ -1,1 +1,76 @@
-
+{
+  "units": [
+    {
+      "id": "knight",
+      "name": "Knight",
+      "description": "A tough melee fighter with decent HP",
+      "cost": 3,
+      "rarity": "common",
+      "stats": {
+        "hp": 600,
+        "damage": 75,
+        "speed": 60,
+        "attackSpeed": 1.2,
+        "range": 30,
+        "deployTime": 1.0
+      },
+      "icon": "🗡️",
+      "type": "troop",
+      "targetType": "ground"
+    },
+    {
+      "id": "archer",
+      "name": "Archer",
+      "description": "Ranged attacker with lower HP but long range",
+      "cost": 3,
+      "rarity": "common",
+      "stats": {
+        "hp": 250,
+        "damage": 50,
+        "speed": 50,
+        "attackSpeed": 1.0,
+        "range": 150,
+        "deployTime": 1.0
+      },
+      "icon": "🏹",
+      "type": "troop",
+      "targetType": "air_ground"
+    },
+    {
+      "id": "giant",
+      "name": "Giant",
+      "description": "Slow tank with massive HP and damage",
+      "cost": 5,
+      "rarity": "rare",
+      "stats": {
+        "hp": 1500,
+        "damage": 120,
+        "speed": 30,
+        "attackSpeed": 1.5,
+        "range": 30,
+        "deployTime": 1.0
+      },
+      "icon": "👹",
+      "type": "troop",
+      "targetType": "buildings"
+    },
+    {
+      "id": "goblin",
+      "name": "Goblin",
+      "description": "Fast, cheap, but fragile unit",
+      "cost": 2,
+      "rarity": "common",
+      "stats": {
+        "hp": 150,
+        "damage": 40,
+        "speed": 80,
+        "attackSpeed": 1.1,
+        "range": 30,
+        "deployTime": 1.0
+      },
+      "icon": "👺",
+      "type": "troop",
+      "targetType": "ground"
+    }
+  ]
+}
