@@ -1,1 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clash Royale Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Main Menu -->
+        <div id="mainMenu" class="menu active">
+            <div class="menu-content">
+                <h1>Clash Royale Clone</h1>
+                <p class="status-text" id="statusText">Ready to play</p>
+                <button id="findMatchBtn" class="btn btn-primary">Find Match</button>
+                <button id="cancelMatchBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                <div class="connection-status">
+                    <span id="connectionStatus" class="status-indicator">●</span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+            </div>
+        </div>
 
+        <!-- Game Screen -->
+        <div id="gameScreen" class="game-screen">
+            <!-- Game HUD -->
+            <div id="gameHUD" class="game-hud">
+                <div class="hud-top">
+                    <div class="player-info player-enemy">
+                        <div class="player-name">Enemy</div>
+                        <div class="elixir-display">
+                            <span class="elixir-icon">⚡</span>
+                            <span id="enemyElixir">0</span>
+                        </div>
+                    </div>
+                    <div class="timer-display">
+                        <span id="matchTimer">3:00</span>
+                    </div>
+                    <div class="player-info player-you">
+                        <div class="player-name">You</div>
+                        <div class="elixir-display">
+                            <span class="elixir-icon">⚡</span>
+                            <span id="playerElixir">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pixi.js Canvas Container -->
+            <div id="gameCanvas"></div>
+
+            <!-- Card Hand -->
+            <div id="cardHand" class="card-hand">
+                <div class="card" data-index="0">
+                    <div class="card-image">🗡️</div>
+                    <div class="card-name">Knight</div>
+                    <div class="card-cost">3</div>
+                </div>
+                <div class="card" data-index="1">
+                    <div class="card-image">🏹</div>
+                    <div class="card-name">Archer</div>
+                    <div class="card-cost">3</div>
+                </div>
+                <div class="card" data-index="2">
+                    <div class="card-image">👹</div>
+                    <div class="card-name">Giant</div>
+                    <div class="card-cost">5</div>
+                </div>
+                <div class="card" data-index="3">
+                    <div class="card-image">👺</div>
+                    <div class="card-name">Goblin</div>
+                    <div class="card-cost">2</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="menu">
+            <div class="menu-content">
+                <h1 id="gameOverTitle">Victory!</h1>
+                <p id="gameOverText">You destroyed the enemy tower!</p>
+                <button id="playAgainBtn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load libraries from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    
+    <!-- Load game modules -->
+    <script type="module" src="main.js"></script>
+</body>
+      </html>
