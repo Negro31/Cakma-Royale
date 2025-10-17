@@ -1,7 +1,7 @@
 // Client configuration
 export const CONFIG = {
   // Server URL - UPDATE THIS for production
-  SERVER_URL: 'http://localhost:3000', // Change to your Render URL: 'https://your-app.onrender.com'
+  SERVER_URL: 'https://cakma-royale-4jdu.onrender.com', // Your Render URL
   
   // Canvas settings
   CANVAS_WIDTH: 800,
