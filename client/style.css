@@ -1,1 +1,278 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Menu Screens */
+.menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.menu.active {
+    display: flex;
+}
+
+.menu-content {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+}
+
+.menu-content h1 {
+    font-size: 36px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.status-text {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+/* Buttons */
+.btn {
+    padding: 15px 40px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-weight: bold;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+}
+
+/* Connection Status */
+.connection-status {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-indicator.connected {
+    color: #4caf50;
+}
+
+.status-indicator.disconnected {
+    color: #f44336;
+}
+
+/* Game Screen */
+.game-screen {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: none;
+}
+
+.game-screen.active {
+    display: block;
+}
+
+/* Game HUD */
+.game-hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.hud-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.player-info {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: white;
+}
+
+.player-name {
+    font-size: 14px;
+    margin-bottom: 5px;
+    opacity: 0.8;
+}
+
+.elixir-display {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.elixir-icon {
+    color: #e91e63;
+    margin-right: 5px;
+}
+
+.timer-display {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 30px;
+    border-radius: 10px;
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+/* Game Canvas */
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Card Hand */
+.card-hand {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.card {
+    width: 100px;
+    height: 140px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.card.selected {
+    transform: translateY(-20px);
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
+    border: 3px solid gold;
+}
+
+.card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.card.disabled:hover {
+    transform: none;
+}
+
+.card-image {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.card-name {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.card-cost {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 5px 10px;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: bold;
+    color: #e91e63;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .menu-content {
+        padding: 30px;
+        max-width: 90%;
+    }
+
+    .menu-content h1 {
+        font-size: 28px;
+    }
+
+    .card {
+        width: 80px;
+        height: 110px;
+    }
+
+    .card-image {
+        font-size: 36px;
+    }
+
+    .timer-display {
+        font-size: 24px;
+        padding: 8px 20px;
+    }
+  }
