@@ -1,1 +1,48 @@
-
+{
+  "cards": [
+    {
+      "id": "knight",
+      "name": "Knight",
+      "cost": 3,
+      "type": "troop",
+      "rarity": "common",
+      "unlockArena": 0
+    },
+    {
+      "id": "archer",
+      "name": "Archer",
+      "cost": 3,
+      "type": "troop",
+      "rarity": "common",
+      "unlockArena": 0
+    },
+    {
+      "id": "giant",
+      "name": "Giant",
+      "cost": 5,
+      "type": "troop",
+      "rarity": "rare",
+      "unlockArena": 0
+    },
+    {
+      "id": "goblin",
+      "name": "Goblin",
+      "cost": 2,
+      "type": "troop",
+      "rarity": "common",
+      "unlockArena": 0
+    }
+  ],
+  "decks": {
+    "starter": [
+      "knight",
+      "archer",
+      "giant",
+      "goblin",
+      "knight",
+      "archer",
+      "goblin",
+      "giant"
+    ]
+  }
+}
