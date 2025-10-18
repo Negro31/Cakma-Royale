@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const config = require('./config');
 const GameServer = require('./GameServer');
@@ -19,8 +20,12 @@ const io = new Server(server, {
   transports: ['websocket', 'polling']
 });
 
+// Serve static files from client directory
+const clientPath = path.join(__dirname, '../client');
+app.use(express.static(clientPath));
+
 // Basic health check endpoint
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
   res.json({
     status: 'online',
     name: 'Clash Royale Clone Server',
@@ -29,8 +34,13 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+// Serve client for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientPath, 'index.html'));
 });
 
 // Initialize game server
@@ -40,6 +50,7 @@ const gameServer = new GameServer(io);
 server.listen(config.PORT, () => {
   Logger.info(`Server running on port ${config.PORT}`);
   Logger.info(`CORS enabled for: ${config.ALLOWED_ORIGINS.join(', ')}`);
+  Logger.info(`Serving client from: ${clientPath}`);
 });
 
 // Graceful shutdown
