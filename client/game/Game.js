@@ -147,52 +147,42 @@ export class Game {
       this.app.destroy(true);
     }
     
-    // Calculate responsive canvas size
-    const maxWidth = CONFIG.CANVAS_WIDTH;
-    const maxHeight = CONFIG.CANVAS_HEIGHT;
-    const aspectRatio = maxWidth / maxHeight;
+    // Get device-specific canvas size
+    const canvasSize = CONFIG.getCanvasSize();
+    const displayWidth = canvasSize.width;
+    const displayHeight = canvasSize.height;
     
-    let canvasWidth = maxWidth;
-    let canvasHeight = maxHeight;
-    
-    // Get container size
-    const container = document.getElementById('gameCanvas');
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    
-    // Adjust to fit screen
-    if (containerWidth / containerHeight > aspectRatio) {
-      // Container is wider
-      canvasHeight = containerHeight;
-      canvasWidth = canvasHeight * aspectRatio;
-    } else {
-      // Container is taller
-      canvasWidth = containerWidth;
-      canvasHeight = canvasWidth / aspectRatio;
-    }
+    // Logical size (for game calculations)
+    const logicalWidth = CONFIG.CANVAS_WIDTH;
+    const logicalHeight = CONFIG.CANVAS_HEIGHT;
     
     this.app = new PIXI.Application({
-      width: canvasWidth,
-      height: canvasHeight,
+      width: displayWidth,
+      height: displayHeight,
       backgroundColor: CONFIG.CANVAS_BACKGROUND,
       antialias: true,
-      resolution: window.devicePixelRatio || 1
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true
     });
     
     document.getElementById('gameCanvas').appendChild(this.app.view);
     
-    // Scale factor for touch/click coordinates
-    this.scaleX = CONFIG.CANVAS_WIDTH / canvasWidth;
-    this.scaleY = CONFIG.CANVAS_HEIGHT / canvasHeight;
+    // Scale factor for coordinate conversion
+    this.scaleX = logicalWidth / displayWidth;
+    this.scaleY = logicalHeight / displayHeight;
     
     // Create arena
     this.arena = new Arena(this.app, this.playerNumber);
     
+    // Scale arena to fit display
+    const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
+    this.arena.container.scale.set(scaleRatio);
+    
     // If player 2, rotate everything 180° so player is always at bottom
     if (this.playerNumber === 2) {
       this.arena.container.rotation = Math.PI;
-      this.arena.container.x = CONFIG.CANVAS_WIDTH;
-      this.arena.container.y = CONFIG.CANVAS_HEIGHT;
+      this.arena.container.x = displayWidth;
+      this.arena.container.y = displayHeight;
     }
     
     // Setup input
@@ -206,9 +196,9 @@ export class Game {
     });
     
     // Handle window resize
-    window.addEventListener('resize', () => {
-      this.handleResize();
-    });
+    this.resizeHandler = () => this.handleResize();
+    window.addEventListener('resize', this.resizeHandler);
+    window.addEventListener('orientationchange', this.resizeHandler);
   }
   
   /**
@@ -217,28 +207,36 @@ export class Game {
   handleResize() {
     if (!this.app) return;
     
-    const maxWidth = CONFIG.CANVAS_WIDTH;
-    const maxHeight = CONFIG.CANVAS_HEIGHT;
-    const aspectRatio = maxWidth / maxHeight;
-    
-    const container = document.getElementById('gameCanvas');
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
-    
-    let canvasWidth = maxWidth;
-    let canvasHeight = maxHeight;
-    
-    if (containerWidth / containerHeight > aspectRatio) {
-      canvasHeight = containerHeight;
-      canvasWidth = canvasHeight * aspectRatio;
-    } else {
-      canvasWidth = containerWidth;
-      canvasHeight = canvasWidth / aspectRatio;
-    }
-    
-    this.app.renderer.resize(canvasWidth, canvasHeight);
-    this.scaleX = CONFIG.CANVAS_WIDTH / canvasWidth;
-    this.scaleY = CONFIG.CANVAS_HEIGHT / canvasHeight;
+    // Debounce resize
+    clearTimeout(this.resizeTimeout);
+    this.resizeTimeout = setTimeout(() => {
+      // Get new canvas size
+      const canvasSize = CONFIG.getCanvasSize();
+      const displayWidth = canvasSize.width;
+      const displayHeight = canvasSize.height;
+      
+      // Resize renderer
+      this.app.renderer.resize(displayWidth, displayHeight);
+      
+      // Update scale factors
+      const logicalWidth = CONFIG.CANVAS_WIDTH;
+      const logicalHeight = CONFIG.CANVAS_HEIGHT;
+      
+      this.scaleX = logicalWidth / displayWidth;
+      this.scaleY = logicalHeight / displayHeight;
+      
+      // Update arena scale
+      if (this.arena) {
+        const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
+        this.arena.container.scale.set(scaleRatio);
+        
+        // Reposition if player 2
+        if (this.playerNumber === 2) {
+          this.arena.container.x = displayWidth;
+          this.arena.container.y = displayHeight;
+        }
+      }
+    }, 250); // Wait 250ms after resize stops
   }
   
   /**
@@ -390,6 +388,12 @@ export class Game {
    * Play again
    */
   playAgain() {
+    // Remove event listeners
+    if (this.resizeHandler) {
+      window.removeEventListener('resize', this.resizeHandler);
+      window.removeEventListener('orientationchange', this.resizeHandler);
+    }
+    
     // Clean up current game
     if (this.arena) {
       this.arena.destroy();
@@ -440,4 +444,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-        }
+                                    }
