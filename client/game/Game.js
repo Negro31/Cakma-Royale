@@ -147,14 +147,43 @@ export class Game {
       this.app.destroy(true);
     }
     
+    // Calculate responsive canvas size
+    const maxWidth = CONFIG.CANVAS_WIDTH;
+    const maxHeight = CONFIG.CANVAS_HEIGHT;
+    const aspectRatio = maxWidth / maxHeight;
+    
+    let canvasWidth = maxWidth;
+    let canvasHeight = maxHeight;
+    
+    // Get container size
+    const container = document.getElementById('gameCanvas');
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    // Adjust to fit screen
+    if (containerWidth / containerHeight > aspectRatio) {
+      // Container is wider
+      canvasHeight = containerHeight;
+      canvasWidth = canvasHeight * aspectRatio;
+    } else {
+      // Container is taller
+      canvasWidth = containerWidth;
+      canvasHeight = canvasWidth / aspectRatio;
+    }
+    
     this.app = new PIXI.Application({
-      width: CONFIG.CANVAS_WIDTH,
-      height: CONFIG.CANVAS_HEIGHT,
+      width: canvasWidth,
+      height: canvasHeight,
       backgroundColor: CONFIG.CANVAS_BACKGROUND,
-      antialias: true
+      antialias: true,
+      resolution: window.devicePixelRatio || 1
     });
     
     document.getElementById('gameCanvas').appendChild(this.app.view);
+    
+    // Scale factor for touch/click coordinates
+    this.scaleX = CONFIG.CANVAS_WIDTH / canvasWidth;
+    this.scaleY = CONFIG.CANVAS_HEIGHT / canvasHeight;
     
     // Create arena
     this.arena = new Arena(this.app, this.playerNumber);
@@ -168,6 +197,41 @@ export class Game {
         this.arena.animate();
       }
     });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      this.handleResize();
+    });
+  }
+  
+  /**
+   * Handle window resize
+   */
+  handleResize() {
+    if (!this.app) return;
+    
+    const maxWidth = CONFIG.CANVAS_WIDTH;
+    const maxHeight = CONFIG.CANVAS_HEIGHT;
+    const aspectRatio = maxWidth / maxHeight;
+    
+    const container = document.getElementById('gameCanvas');
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    let canvasWidth = maxWidth;
+    let canvasHeight = maxHeight;
+    
+    if (containerWidth / containerHeight > aspectRatio) {
+      canvasHeight = containerHeight;
+      canvasWidth = canvasHeight * aspectRatio;
+    } else {
+      canvasWidth = containerWidth;
+      canvasHeight = canvasWidth / aspectRatio;
+    }
+    
+    this.app.renderer.resize(canvasWidth, canvasHeight);
+    this.scaleX = CONFIG.CANVAS_WIDTH / canvasWidth;
+    this.scaleY = CONFIG.CANVAS_HEIGHT / canvasHeight;
   }
   
   /**
@@ -176,31 +240,53 @@ export class Game {
   setupInput() {
     this.app.view.style.cursor = 'default';
     
-    // Mouse move - show spawn indicator
-    this.app.view.addEventListener('mousemove', (e) => {
+    // Helper function to get coordinates (works for mouse and touch)
+    const getCoords = (e) => {
+      const rect = this.app.view.getBoundingClientRect();
+      let clientX, clientY;
+      
+      if (e.touches && e.touches.length > 0) {
+        // Touch event
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        // Mouse event
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      
+      const x = (clientX - rect.left) * this.scaleX;
+      const y = (clientY - rect.top) * this.scaleY;
+      
+      return { x, y };
+    };
+    
+    // Mouse/Touch move - show spawn indicator
+    const handleMove = (e) => {
       if (!this.cardSystem.hasSelection()) {
         this.arena.hideSpawnIndicator();
         return;
       }
       
-      const rect = this.app.view.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
+      const { x, y } = getCoords(e);
       const valid = this.arena.isValidSpawnPosition(x, y);
       this.arena.showSpawnIndicator(x, y, valid);
       
       this.app.view.style.cursor = valid ? 'pointer' : 'not-allowed';
-    });
+    };
     
-    // Mouse click - spawn unit
-    this.app.view.addEventListener('click', (e) => {
+    this.app.view.addEventListener('mousemove', handleMove);
+    this.app.view.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      handleMove(e);
+    }, { passive: false });
+    
+    // Mouse/Touch click - spawn unit
+    const handleClick = (e) => {
       const selection = this.cardSystem.getSelectedCard();
       if (!selection.card) return;
       
-      const rect = this.app.view.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const { x, y } = getCoords(e);
       
       if (this.arena.isValidSpawnPosition(x, y)) {
         this.spawnUnit(selection.card.id, x, y, selection.index);
@@ -208,13 +294,22 @@ export class Game {
         this.arena.hideSpawnIndicator();
         this.app.view.style.cursor = 'default';
       }
-    });
+    };
     
-    // Mouse leave - hide indicator
-    this.app.view.addEventListener('mouseleave', () => {
+    this.app.view.addEventListener('click', handleClick);
+    this.app.view.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      handleClick(e);
+    }, { passive: false });
+    
+    // Mouse/Touch leave - hide indicator
+    const handleLeave = () => {
       this.arena.hideSpawnIndicator();
       this.app.view.style.cursor = 'default';
-    });
+    };
+    
+    this.app.view.addEventListener('mouseleave', handleLeave);
+    this.app.view.addEventListener('touchcancel', handleLeave);
   }
   
   /**
