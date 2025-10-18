@@ -69,6 +69,7 @@ export class Arena {
       if (this.towers.has(data.id)) {
         this.towers.get(data.id).update(data);
       } else {
+        // Player is always at bottom (blue), enemy at top (red)
         const isPlayer = data.owner === this.playerNumber;
         const tower = new Tower(data, this.container, isPlayer);
         this.towers.set(data.id, tower);
@@ -94,6 +95,7 @@ export class Arena {
       if (this.units.has(data.id)) {
         this.units.get(data.id).update(data);
       } else if (data.alive) {
+        // Player is always blue, enemy is always red
         const isPlayer = data.owner === this.playerNumber;
         const unit = new Unit(data, this.container, isPlayer);
         this.units.set(data.id, unit);
@@ -142,10 +144,10 @@ export class Arena {
       return false;
     }
     
-    // Check if on player's side
+    // Player always spawns in bottom half (regardless of player number)
+    // Because we rotate the view for player 2
     const midY = CONFIG.CANVAS_HEIGHT / 2;
-    if (this.playerNumber === 1 && y < midY) return false;
-    if (this.playerNumber === 2 && y > midY) return false;
+    if (y < midY) return false; // Can't spawn in top half
     
     return true;
   }
