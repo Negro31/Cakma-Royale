@@ -35,7 +35,11 @@ export class Tower {
    */
   draw() {
     const color = this.isPlayer ? CONFIG.TOWER_COLOR.PLAYER : CONFIG.TOWER_COLOR.ENEMY;
-    const size = this.type === 'main' ? 60 : 40;
+    
+    // Adjust size based on device
+    const isMobile = window.innerWidth < 768;
+    const sizeMultiplier = isMobile ? 0.8 : 1;
+    const size = (this.type === 'main' ? 60 : 40) * sizeMultiplier;
     
     this.graphics.clear();
     this.graphics.beginFill(color);
@@ -43,7 +47,7 @@ export class Tower {
     this.graphics.endFill();
     
     // Draw border
-    this.graphics.lineStyle(3, 0xffffff);
+    this.graphics.lineStyle(3 * sizeMultiplier, 0xffffff);
     this.graphics.drawRect(-size / 2, -size / 2, size, size);
     
     this.graphics.x = this.x;
@@ -57,8 +61,9 @@ export class Tower {
    * Draw HP bar
    */
   drawHPBar() {
-    const barWidth = 60;
-    const barHeight = 6;
+    const isMobile = window.innerWidth < 768;
+    const barWidth = isMobile ? 50 : 60;
+    const barHeight = isMobile ? 5 : 6;
     const hpPercent = this.hp / this.maxHp;
     
     this.hpBar.clear();
@@ -75,7 +80,7 @@ export class Tower {
     this.hpBar.endFill();
     
     this.hpBar.x = this.x - barWidth / 2;
-    this.hpBar.y = this.y - 40;
+    this.hpBar.y = this.y - (isMobile ? 35 : 40);
   }
   
   /**
