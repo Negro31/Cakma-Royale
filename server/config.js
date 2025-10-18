@@ -7,6 +7,7 @@ module.exports = {
     'http://localhost:8080',
     'http://127.0.0.1:8080',
     'https://negro31.github.io', // Your GitHub Pages URL
+    'https://cakma-royale-4jdu.onrender.com', // Your Render domain
     'http://localhost:5500', // Live Server default port
     'http://127.0.0.1:5500'
   ],
