@@ -86,7 +86,11 @@ export class Unit {
       giant: 20,
       goblin: 10
     };
-    return sizes[this.type] || 15;
+    
+    // Adjust size for mobile
+    const isMobile = window.innerWidth < 768;
+    const baseSize = sizes[this.type] || 15;
+    return isMobile ? baseSize * 0.8 : baseSize;
   }
   
   /**
@@ -108,8 +112,9 @@ export class Unit {
    * Draw HP bar
    */
   drawHPBar() {
-    const barWidth = 40;
-    const barHeight = 4;
+    const isMobile = window.innerWidth < 768;
+    const barWidth = isMobile ? 35 : 40;
+    const barHeight = isMobile ? 3 : 4;
     const hpPercent = this.hp / this.maxHp;
     
     this.hpBar.clear();
@@ -126,7 +131,7 @@ export class Unit {
     this.hpBar.endFill();
     
     this.hpBar.x = this.visualX - barWidth / 2;
-    this.hpBar.y = this.visualY - this.getUnitSize() - 10;
+    this.hpBar.y = this.visualY - this.getUnitSize() - (isMobile ? 8 : 10);
   }
   
   /**
@@ -166,4 +171,4 @@ export class Unit {
     this.hpBar.destroy();
     this.typeText.destroy();
   }
-}
+      }
