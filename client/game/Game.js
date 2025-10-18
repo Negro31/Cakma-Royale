@@ -188,6 +188,13 @@ export class Game {
     // Create arena
     this.arena = new Arena(this.app, this.playerNumber);
     
+    // If player 2, rotate everything 180° so player is always at bottom
+    if (this.playerNumber === 2) {
+      this.arena.container.rotation = Math.PI;
+      this.arena.container.x = CONFIG.CANVAS_WIDTH;
+      this.arena.container.y = CONFIG.CANVAS_HEIGHT;
+    }
+    
     // Setup input
     this.setupInput();
     
@@ -255,8 +262,14 @@ export class Game {
         clientY = e.clientY;
       }
       
-      const x = (clientX - rect.left) * this.scaleX;
-      const y = (clientY - rect.top) * this.scaleY;
+      let x = (clientX - rect.left) * this.scaleX;
+      let y = (clientY - rect.top) * this.scaleY;
+      
+      // If player 2, flip coordinates (because view is rotated)
+      if (this.playerNumber === 2) {
+        x = CONFIG.CANVAS_WIDTH - x;
+        y = CONFIG.CANVAS_HEIGHT - y;
+      }
       
       return { x, y };
     };
@@ -331,17 +344,12 @@ export class Game {
       this.arena.updateUnits(state.units);
     }
     
-    // Update player info
+    // Update player info (only own elixir, not enemy's)
     const player = state.players.find(p => p.playerNumber === this.playerNumber);
-    const enemy = state.players.find(p => p.playerNumber !== this.playerNumber);
     
     if (player) {
       document.getElementById('playerElixir').textContent = player.elixir.toFixed(1);
       this.cardSystem.updateHand(player.hand, player.elixir);
-    }
-    
-    if (enemy) {
-      document.getElementById('enemyElixir').textContent = enemy.elixir.toFixed(1);
     }
     
     // Update timer
@@ -432,4 +440,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-  }
+        }
