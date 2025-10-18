@@ -10,6 +10,8 @@ body {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    position: fixed;
+    touch-action: none; /* Prevent mobile scrolling */
 }
 
 #app {
@@ -43,6 +45,7 @@ body {
     text-align: center;
     box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
     max-width: 400px;
+    width: 90%;
 }
 
 .menu-content h1 {
@@ -67,6 +70,7 @@ body {
     margin: 10px;
     transition: transform 0.2s, box-shadow 0.2s;
     font-weight: bold;
+    touch-action: manipulation; /* Better mobile tap response */
 }
 
 .btn:hover {
@@ -137,25 +141,26 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent);
 }
 
 .player-info {
     background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
+    padding: 8px 15px;
     border-radius: 10px;
     color: white;
+    font-size: 14px;
 }
 
 .player-name {
-    font-size: 14px;
-    margin-bottom: 5px;
+    font-size: 12px;
+    margin-bottom: 3px;
     opacity: 0.8;
 }
 
 .elixir-display {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
 }
 
@@ -166,10 +171,10 @@ body {
 
 .timer-display {
     background: rgba(0, 0, 0, 0.7);
-    padding: 10px 30px;
+    padding: 8px 20px;
     border-radius: 10px;
     color: white;
-    font-size: 32px;
+    font-size: 24px;
     font-weight: bold;
 }
 
@@ -182,20 +187,29 @@ body {
     justify-content: center;
 }
 
+#gameCanvas canvas {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto !important;
+    height: auto !important;
+    display: block;
+}
+
 /* Card Hand */
 .card-hand {
     position: absolute;
-    bottom: 20px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     z-index: 100;
+    padding: 0 10px;
 }
 
 .card {
-    width: 100px;
-    height: 140px;
+    width: 80px;
+    height: 110px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 10px;
     cursor: pointer;
@@ -207,6 +221,7 @@ body {
     color: white;
     position: relative;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    touch-action: manipulation;
 }
 
 .card:hover {
@@ -230,49 +245,139 @@ body {
 }
 
 .card-image {
-    font-size: 48px;
-    margin-bottom: 10px;
+    font-size: 36px;
+    margin-bottom: 5px;
 }
 
 .card-name {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: bold;
 }
 
 .card-cost {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 3px;
+    right: 3px;
     background: rgba(0, 0, 0, 0.7);
-    padding: 5px 10px;
+    padding: 3px 8px;
     border-radius: 50%;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     color: #e91e63;
 }
 
-/* Responsive Design */
+/* Mobile Responsive */
 @media (max-width: 768px) {
     .menu-content {
-        padding: 30px;
+        padding: 30px 20px;
         max-width: 90%;
     }
 
     .menu-content h1 {
-        font-size: 28px;
+        font-size: 24px;
     }
 
-    .card {
-        width: 80px;
-        height: 110px;
+    .status-text {
+        font-size: 14px;
     }
 
-    .card-image {
-        font-size: 36px;
+    .btn {
+        padding: 12px 30px;
+        font-size: 16px;
+    }
+
+    .hud-top {
+        padding: 10px;
+    }
+
+    .player-info {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .elixir-display {
+        font-size: 16px;
     }
 
     .timer-display {
-        font-size: 24px;
-        padding: 8px 20px;
+        font-size: 18px;
+        padding: 6px 15px;
     }
-  }
+
+    .card-hand {
+        bottom: 5px;
+        gap: 5px;
+    }
+
+    .card {
+        width: 70px;
+        height: 95px;
+    }
+
+    .card-image {
+        font-size: 28px;
+    }
+
+    .card-name {
+        font-size: 10px;
+    }
+
+    .card-cost {
+        font-size: 12px;
+        padding: 2px 6px;
+    }
+}
+
+/* Very small screens (phones in portrait) */
+@media (max-width: 480px) {
+    .menu-content h1 {
+        font-size: 20px;
+    }
+
+    .card {
+        width: 60px;
+        height: 85px;
+    }
+
+    .card-image {
+        font-size: 24px;
+    }
+
+    .card-name {
+        font-size: 9px;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    .hud-top {
+        padding: 5px;
+    }
+
+    .player-info {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .elixir-display {
+        font-size: 14px;
+    }
+
+    .timer-display {
+        font-size: 16px;
+        padding: 4px 12px;
+    }
+
+    .card-hand {
+        bottom: 3px;
+    }
+
+    .card {
+        width: 55px;
+        height: 75px;
+    }
+
+    .card-image {
+        font-size: 22px;
+    }
+}
