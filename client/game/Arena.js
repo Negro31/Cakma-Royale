@@ -126,6 +126,13 @@ export class Arena {
     
     this.spawnIndicator.lineStyle(2, color);
     this.spawnIndicator.drawCircle(x, y, 30);
+    
+    // Debug: Draw center line
+    if (CONFIG.DEBUG_MODE) {
+      this.spawnIndicator.lineStyle(2, 0xffff00, 0.5);
+      this.spawnIndicator.moveTo(0, CONFIG.CANVAS_HEIGHT / 2);
+      this.spawnIndicator.lineTo(CONFIG.CANVAS_WIDTH, CONFIG.CANVAS_HEIGHT / 2);
+    }
   }
   
   /**
@@ -144,10 +151,14 @@ export class Arena {
       return false;
     }
     
-    // Player always spawns in bottom half (regardless of player number)
-    // Because we rotate the view for player 2
+    // Player always spawns in bottom half (regardless of actual player number)
+    // Because we rotate the view for player 2, from their perspective they're always at bottom
     const midY = CONFIG.CANVAS_HEIGHT / 2;
-    if (y < midY) return false; // Can't spawn in top half
+    
+    // Can only spawn in bottom half (y > midY)
+    if (y <= midY) {
+      return false;
+    }
     
     return true;
   }
@@ -169,4 +180,4 @@ export class Arena {
     this.clear();
     this.container.destroy({ children: true });
   }
-}
+        }
