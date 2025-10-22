@@ -248,17 +248,21 @@ class Match {
     let nearest = null;
     let minDist = Infinity;
     
-    // Check enemy towers
-    const enemyTowers = this.towers.filter(t => t.owner !== unit.owner && t.alive);
-    enemyTowers.forEach(tower => {
-      const dist = MathUtils.distance(unit.x, unit.y, tower.x, tower.y);
-      if (dist < minDist) {
-        minDist = dist;
-        nearest = tower;
-      }
-    });
+    // Giant always targets towers only
+    if (unit.type === 'giant') {
+      const enemyTowers = this.towers.filter(t => t.owner !== unit.owner && t.alive);
+      enemyTowers.forEach(tower => {
+        const dist = MathUtils.distance(unit.x, unit.y, tower.x, tower.y);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = tower;
+        }
+      });
+      return nearest;
+    }
     
-    // Check enemy units
+    // Other units: prioritize enemy units first, then towers
+    // Check enemy units first
     this.units.forEach(otherUnit => {
       if (otherUnit.owner !== unit.owner && otherUnit.alive) {
         const dist = MathUtils.distance(unit.x, unit.y, otherUnit.x, otherUnit.y);
@@ -268,6 +272,18 @@ class Match {
         }
       }
     });
+    
+    // If no enemy units nearby (within reasonable range), target towers
+    if (!nearest || minDist > 200) {
+      const enemyTowers = this.towers.filter(t => t.owner !== unit.owner && t.alive);
+      enemyTowers.forEach(tower => {
+        const dist = MathUtils.distance(unit.x, unit.y, tower.x, tower.y);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = tower;
+        }
+      });
+    }
     
     return nearest;
   }
@@ -330,31 +346,43 @@ class Match {
       return false;
     }
     
-    // Create unit
-    const unitId = `unit_${this.nextUnitId++}`;
-    const unit = {
-      id: unitId,
-      type: unitType,
-      owner: player.playerNumber,
-      x: x,
-      y: y,
-      hp: unitData.hp,
-      maxHp: unitData.hp,
-      damage: unitData.damage,
-      speed: unitData.speed,
-      attackSpeed: unitData.attackSpeed,
-      range: unitData.range,
-      target: null,
-      lastAttack: Date.now(),
-      alive: true
-    };
+    // Determine spawn count (archers spawn 2, goblins spawn 4, others spawn 1)
+    const spawnCount = unitData.spawnCount || 1;
     
-    this.units.set(unitId, unit);
+    // Create units
+    for (let i = 0; i < spawnCount; i++) {
+      const unitId = `unit_${this.nextUnitId++}`;
+      
+      // Offset position for multiple spawns
+      const offset = 30;
+      const angle = (i / spawnCount) * Math.PI * 2;
+      const spawnX = x + Math.cos(angle) * offset;
+      const spawnY = y + Math.sin(angle) * offset;
+      
+      const unit = {
+        id: unitId,
+        type: unitType,
+        owner: player.playerNumber,
+        x: spawnX,
+        y: spawnY,
+        hp: unitData.hp,
+        maxHp: unitData.hp,
+        damage: unitData.damage,
+        speed: unitData.speed,
+        attackSpeed: unitData.attackSpeed,
+        range: unitData.range,
+        target: null,
+        lastAttack: Date.now(),
+        alive: true
+      };
+      
+      this.units.set(unitId, unit);
+      Logger.debug(`Unit ${unitId} (${unitType}) spawned by player ${player.playerNumber}`);
+    }
     
     // Draw new card for player
     player.drawCard(cardIndex);
     
-    Logger.debug(`Unit ${unitId} (${unitType}) spawned by player ${player.playerNumber}`);
     return true;
   }
   
@@ -369,15 +397,17 @@ class Match {
         damage: 75,
         speed: 60,
         attackSpeed: 1.2,
-        range: 30
+        range: 30,
+        spawnCount: 1
       },
       archer: {
         cost: 3,
-        hp: 250,
-        damage: 50,
+        hp: 200,
+        damage: 40,
         speed: 50,
         attackSpeed: 1.0,
-        range: 150
+        range: 150,
+        spawnCount: 2 // Spawns 2 archers
       },
       giant: {
         cost: 5,
@@ -385,15 +415,17 @@ class Match {
         damage: 120,
         speed: 30,
         attackSpeed: 1.5,
-        range: 30
+        range: 30,
+        spawnCount: 1
       },
       goblin: {
         cost: 2,
-        hp: 150,
-        damage: 40,
+        hp: 120,
+        damage: 30,
         speed: 80,
         attackSpeed: 1.1,
-        range: 30
+        range: 30,
+        spawnCount: 4 // Spawns 4 goblins
       }
     };
     
