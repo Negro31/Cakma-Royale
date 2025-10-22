@@ -178,11 +178,20 @@ export class Game {
     const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
     this.arena.container.scale.set(scaleRatio);
     
+    // Center the arena
+    const scaledWidth = logicalWidth * scaleRatio;
+    const scaledHeight = logicalHeight * scaleRatio;
+    const offsetX = (displayWidth - scaledWidth) / 2;
+    const offsetY = (displayHeight - scaledHeight) / 2;
+    
     // If player 2, rotate everything 180° so player is always at bottom
     if (this.playerNumber === 2) {
       this.arena.container.rotation = Math.PI;
-      this.arena.container.x = displayWidth;
-      this.arena.container.y = displayHeight;
+      this.arena.container.x = displayWidth - offsetX;
+      this.arena.container.y = displayHeight - offsetY;
+    } else {
+      this.arena.container.x = offsetX;
+      this.arena.container.y = offsetY;
     }
     
     // Setup input
@@ -225,15 +234,23 @@ export class Game {
       this.scaleX = logicalWidth / displayWidth;
       this.scaleY = logicalHeight / displayHeight;
       
-      // Update arena scale
+      // Update arena scale and position
       if (this.arena) {
         const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
         this.arena.container.scale.set(scaleRatio);
         
+        const scaledWidth = logicalWidth * scaleRatio;
+        const scaledHeight = logicalHeight * scaleRatio;
+        const offsetX = (displayWidth - scaledWidth) / 2;
+        const offsetY = (displayHeight - scaledHeight) / 2;
+        
         // Reposition if player 2
         if (this.playerNumber === 2) {
-          this.arena.container.x = displayWidth;
-          this.arena.container.y = displayHeight;
+          this.arena.container.x = displayWidth - offsetX;
+          this.arena.container.y = displayHeight - offsetY;
+        } else {
+          this.arena.container.x = offsetX;
+          this.arena.container.y = offsetY;
         }
       }
     }, 250); // Wait 250ms after resize stops
@@ -444,4 +461,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-                                    }
+        }
