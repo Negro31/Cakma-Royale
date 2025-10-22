@@ -82,9 +82,9 @@ export class Unit {
   getUnitSize() {
     const sizes = {
       knight: 15,
-      archer: 12,
+      archer: 8,   // Smaller archers
       giant: 20,
-      goblin: 10
+      goblin: 7    // Smaller goblins
     };
     
     // Adjust size for mobile
@@ -104,6 +104,9 @@ export class Unit {
     this.graphics.x = this.visualX;
     this.graphics.y = this.visualY;
     
+    // Adjust emoji size for smaller units
+    const fontSize = this.type === 'archer' || this.type === 'goblin' ? 16 : 24;
+    this.typeText.style.fontSize = fontSize;
     this.typeText.x = this.visualX;
     this.typeText.y = this.visualY - this.getUnitSize() - 15;
   }
@@ -171,4 +174,4 @@ export class Unit {
     this.hpBar.destroy();
     this.typeText.destroy();
   }
-      }
+  }
