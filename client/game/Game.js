@@ -277,13 +277,30 @@ export class Game {
         clientY = e.clientY;
       }
       
-      let x = (clientX - rect.left) * this.scaleX;
-      let y = (clientY - rect.top) * this.scaleY;
+      // Get canvas position relative to viewport
+      const canvasX = clientX - rect.left;
+      const canvasY = clientY - rect.top;
+      
+      // Convert to logical coordinates (accounting for arena offset and scale)
+      const logicalWidth = CONFIG.CANVAS_WIDTH;
+      const logicalHeight = CONFIG.CANVAS_HEIGHT;
+      const displayWidth = this.app.renderer.width;
+      const displayHeight = this.app.renderer.height;
+      
+      const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
+      const scaledWidth = logicalWidth * scaleRatio;
+      const scaledHeight = logicalHeight * scaleRatio;
+      const offsetX = (displayWidth - scaledWidth) / 2;
+      const offsetY = (displayHeight - scaledHeight) / 2;
+      
+      // Adjust for offset
+      let x = (canvasX - offsetX) / scaleRatio;
+      let y = (canvasY - offsetY) / scaleRatio;
       
       // If player 2, flip coordinates (because view is rotated)
       if (this.playerNumber === 2) {
-        x = CONFIG.CANVAS_WIDTH - x;
-        y = CONFIG.CANVAS_HEIGHT - y;
+        x = logicalWidth - x;
+        y = logicalHeight - y;
       }
       
       return { x, y };
@@ -316,11 +333,15 @@ export class Game {
       
       const { x, y } = getCoords(e);
       
+      console.log(`Spawn attempt: x=${x.toFixed(1)}, y=${y.toFixed(1)}, player=${this.playerNumber}`);
+      
       if (this.arena.isValidSpawnPosition(x, y)) {
         this.spawnUnit(selection.card.id, x, y, selection.index);
         this.cardSystem.deselectCard();
         this.arena.hideSpawnIndicator();
         this.app.view.style.cursor = 'default';
+      } else {
+        console.warn('Invalid spawn position');
       }
     };
     
