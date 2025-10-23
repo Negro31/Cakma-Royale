@@ -141,8 +141,19 @@ class GameServer {
       return;
     }
     
+    // Validate coordinates
+    if (typeof x !== 'number' || typeof y !== 'number' || isNaN(x) || isNaN(y)) {
+      Logger.warn(`Invalid coordinates from player ${player.id}: x=${x}, y=${y}`);
+      player.emit(CONSTANTS.EVENTS.ERROR, { message: 'Invalid coordinates' });
+      return;
+    }
+    
     // Validate spawn position
-    if (!validateSpawnPosition(x, y, player.playerNumber, CONSTANTS.ARENA_WIDTH, CONSTANTS.ARENA_HEIGHT)) {
+    const isValid = validateSpawnPosition(x, y, player.playerNumber, CONSTANTS.ARENA_WIDTH, CONSTANTS.ARENA_HEIGHT);
+    
+    Logger.debug(`Spawn validation: player=${player.playerNumber}, x=${x.toFixed(1)}, y=${y.toFixed(1)}, valid=${isValid}`);
+    
+    if (!isValid) {
       player.emit(CONSTANTS.EVENTS.ERROR, { message: 'Invalid spawn position' });
       return;
     }
