@@ -152,6 +152,8 @@ export class Game {
     const displayWidth = canvasSize.width;
     const displayHeight = canvasSize.height;
     
+    console.log(`Initializing Pixi: display=${displayWidth}x${displayHeight}, logical=${CONFIG.CANVAS_WIDTH}x${CONFIG.CANVAS_HEIGHT}, player=${this.playerNumber}`);
+    
     // Logical size (for game calculations)
     const logicalWidth = CONFIG.CANVAS_WIDTH;
     const logicalHeight = CONFIG.CANVAS_HEIGHT;
@@ -166,6 +168,8 @@ export class Game {
     });
     
     document.getElementById('gameCanvas').appendChild(this.app.view);
+    
+    console.log(`Pixi created: renderer=${this.app.renderer.width}x${this.app.renderer.height}, view=${this.app.view.width}x${this.app.view.height}`);
     
     // Scale factor for coordinate conversion
     this.scaleX = logicalWidth / displayWidth;
@@ -183,6 +187,8 @@ export class Game {
     const scaledHeight = logicalHeight * scaleRatio;
     const offsetX = (displayWidth - scaledWidth) / 2;
     const offsetY = (displayHeight - scaledHeight) / 2;
+    
+    console.log(`Arena: scale=${scaleRatio}, offset=(${offsetX},${offsetY}), scaled=${scaledWidth}x${scaledHeight}`);
     
     // If player 2, rotate everything 180° so player is always at bottom
     if (this.playerNumber === 2) {
@@ -267,6 +273,12 @@ export class Game {
     
     // Helper function to get coordinates (works for mouse and touch)
     const getCoords = (e) => {
+      // Safety check
+      if (!this.app || !this.app.renderer) {
+        console.error('App not ready');
+        return { x: 0, y: 0 };
+      }
+      
       const rect = this.app.view.getBoundingClientRect();
       let clientX, clientY;
       
@@ -274,8 +286,8 @@ export class Game {
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
+        clientX = e.clientX || 0;
+        clientY = e.clientY || 0;
       }
       
       // Get position relative to canvas
@@ -285,8 +297,14 @@ export class Game {
       // Get arena dimensions
       const logicalWidth = CONFIG.CANVAS_WIDTH;
       const logicalHeight = CONFIG.CANVAS_HEIGHT;
-      const displayWidth = this.app.renderer.width;
-      const displayHeight = this.app.renderer.height;
+      const displayWidth = this.app.renderer.width || this.app.view.width;
+      const displayHeight = this.app.renderer.height || this.app.view.height;
+      
+      // Safety check for dimensions
+      if (!displayWidth || !displayHeight) {
+        console.error('Invalid display dimensions');
+        return { x: 0, y: 0 };
+      }
       
       // Calculate scale and offset
       const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
@@ -309,7 +327,7 @@ export class Game {
       logicalX = Math.max(0, Math.min(logicalWidth, logicalX));
       logicalY = Math.max(0, Math.min(logicalHeight, logicalY));
       
-      console.log(`Mouse: canvas(${canvasX.toFixed(0)},${canvasY.toFixed(0)}) -> logical(${logicalX.toFixed(0)},${logicalY.toFixed(0)}) [player ${this.playerNumber}]`);
+      console.log(`Mouse: canvas(${canvasX.toFixed(0)},${canvasY.toFixed(0)}) -> logical(${logicalX.toFixed(0)},${logicalY.toFixed(0)}) [player ${this.playerNumber}] display(${displayWidth}x${displayHeight})`);
       
       return { x: logicalX, y: logicalY };
     };
@@ -317,6 +335,13 @@ export class Game {
     // Mouse/Touch move
     const handleMove = (e) => {
       const coords = getCoords(e);
+      
+      // Validate coordinates
+      if (isNaN(coords.x) || isNaN(coords.y)) {
+        console.warn('Invalid coordinates from getCoords');
+        return;
+      }
+      
       this.currentMousePos = coords;
       
       if (!this.cardSystem.hasSelection()) {
@@ -341,6 +366,12 @@ export class Game {
       if (!selection.card) return;
       
       const coords = getCoords(e);
+      
+      // Validate coordinates before proceeding
+      if (isNaN(coords.x) || isNaN(coords.y)) {
+        console.error('Cannot spawn: invalid coordinates');
+        return;
+      }
       
       console.log(`Click at: x=${coords.x.toFixed(1)}, y=${coords.y.toFixed(1)}`);
       
@@ -502,4 +533,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-            }
+}
