@@ -262,61 +262,70 @@ export class Game {
   setupInput() {
     this.app.view.style.cursor = 'default';
     
+    // Store current mouse position
+    this.currentMousePos = { x: 0, y: 0 };
+    
     // Helper function to get coordinates (works for mouse and touch)
     const getCoords = (e) => {
       const rect = this.app.view.getBoundingClientRect();
       let clientX, clientY;
       
       if (e.touches && e.touches.length > 0) {
-        // Touch event
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       } else {
-        // Mouse event
         clientX = e.clientX;
         clientY = e.clientY;
       }
       
-      // Get canvas position relative to viewport
+      // Get position relative to canvas
       const canvasX = clientX - rect.left;
       const canvasY = clientY - rect.top;
       
-      // Convert to logical coordinates (accounting for arena offset and scale)
+      // Get arena dimensions
       const logicalWidth = CONFIG.CANVAS_WIDTH;
       const logicalHeight = CONFIG.CANVAS_HEIGHT;
       const displayWidth = this.app.renderer.width;
       const displayHeight = this.app.renderer.height;
       
+      // Calculate scale and offset
       const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
       const scaledWidth = logicalWidth * scaleRatio;
       const scaledHeight = logicalHeight * scaleRatio;
       const offsetX = (displayWidth - scaledWidth) / 2;
       const offsetY = (displayHeight - scaledHeight) / 2;
       
-      // Adjust for offset
-      let x = (canvasX - offsetX) / scaleRatio;
-      let y = (canvasY - offsetY) / scaleRatio;
+      // Convert to logical coordinates
+      let logicalX = (canvasX - offsetX) / scaleRatio;
+      let logicalY = (canvasY - offsetY) / scaleRatio;
       
-      // If player 2, flip coordinates (because view is rotated)
+      // If player 2, flip coordinates
       if (this.playerNumber === 2) {
-        x = logicalWidth - x;
-        y = logicalHeight - y;
+        logicalX = logicalWidth - logicalX;
+        logicalY = logicalHeight - logicalY;
       }
       
-      return { x, y };
+      // Clamp to arena bounds
+      logicalX = Math.max(0, Math.min(logicalWidth, logicalX));
+      logicalY = Math.max(0, Math.min(logicalHeight, logicalY));
+      
+      console.log(`Mouse: canvas(${canvasX.toFixed(0)},${canvasY.toFixed(0)}) -> logical(${logicalX.toFixed(0)},${logicalY.toFixed(0)}) [player ${this.playerNumber}]`);
+      
+      return { x: logicalX, y: logicalY };
     };
     
-    // Mouse/Touch move - show spawn indicator
+    // Mouse/Touch move
     const handleMove = (e) => {
+      const coords = getCoords(e);
+      this.currentMousePos = coords;
+      
       if (!this.cardSystem.hasSelection()) {
         this.arena.hideSpawnIndicator();
         return;
       }
       
-      const { x, y } = getCoords(e);
-      const valid = this.arena.isValidSpawnPosition(x, y);
-      this.arena.showSpawnIndicator(x, y, valid);
-      
+      const valid = this.arena.isValidSpawnPosition(coords.x, coords.y);
+      this.arena.showSpawnIndicator(coords.x, coords.y, valid);
       this.app.view.style.cursor = valid ? 'pointer' : 'not-allowed';
     };
     
@@ -326,22 +335,22 @@ export class Game {
       handleMove(e);
     }, { passive: false });
     
-    // Mouse/Touch click - spawn unit
+    // Mouse/Touch click
     const handleClick = (e) => {
       const selection = this.cardSystem.getSelectedCard();
       if (!selection.card) return;
       
-      const { x, y } = getCoords(e);
+      const coords = getCoords(e);
       
-      console.log(`Spawn attempt: x=${x.toFixed(1)}, y=${y.toFixed(1)}, player=${this.playerNumber}`);
+      console.log(`Click at: x=${coords.x.toFixed(1)}, y=${coords.y.toFixed(1)}`);
       
-      if (this.arena.isValidSpawnPosition(x, y)) {
-        this.spawnUnit(selection.card.id, x, y, selection.index);
+      if (this.arena.isValidSpawnPosition(coords.x, coords.y)) {
+        this.spawnUnit(selection.card.id, coords.x, coords.y, selection.index);
         this.cardSystem.deselectCard();
         this.arena.hideSpawnIndicator();
         this.app.view.style.cursor = 'default';
       } else {
-        console.warn('Invalid spawn position');
+        console.warn(`Invalid spawn: x=${coords.x}, y=${coords.y}, midY=${CONFIG.CANVAS_HEIGHT/2}`);
       }
     };
     
@@ -351,7 +360,7 @@ export class Game {
       handleClick(e);
     }, { passive: false });
     
-    // Mouse/Touch leave - hide indicator
+    // Mouse/Touch leave
     const handleLeave = () => {
       this.arena.hideSpawnIndicator();
       this.app.view.style.cursor = 'default';
@@ -365,7 +374,18 @@ export class Game {
    * Spawn a unit
    */
   spawnUnit(unitType, x, y, cardIndex) {
-    this.network.spawnUnit(unitType, x, y, cardIndex);
+    // Ensure coordinates are valid numbers
+    const validX = Math.round(x);
+    const validY = Math.round(y);
+    
+    console.log(`Sending spawn to server: unitType=${unitType}, x=${validX}, y=${validY}, cardIndex=${cardIndex}, playerNumber=${this.playerNumber}`);
+    
+    if (isNaN(validX) || isNaN(validY)) {
+      console.error('Invalid coordinates, not sending to server');
+      return;
+    }
+    
+    this.network.spawnUnit(unitType, validX, validY, cardIndex);
   }
   
   /**
@@ -482,4 +502,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-        }
+            }
