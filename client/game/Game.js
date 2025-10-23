@@ -268,15 +268,12 @@ export class Game {
   setupInput() {
     this.app.view.style.cursor = 'default';
     
-    // Store current mouse position
-    this.currentMousePos = { x: 0, y: 0 };
-    
     // Helper function to get coordinates (works for mouse and touch)
     const getCoords = (e) => {
       // Safety check
-      if (!this.app || !this.app.renderer) {
+      if (!this.app || !this.app.view) {
         console.error('App not ready');
-        return { x: 0, y: 0 };
+        return { x: 400, y: 900 }; // Default safe position
       }
       
       const rect = this.app.view.getBoundingClientRect();
@@ -294,30 +291,26 @@ export class Game {
       const canvasX = clientX - rect.left;
       const canvasY = clientY - rect.top;
       
+      // Get canvas dimensions
+      const canvasWidth = rect.width;
+      const canvasHeight = rect.height;
+      
       // Get arena dimensions
       const logicalWidth = CONFIG.CANVAS_WIDTH;
       const logicalHeight = CONFIG.CANVAS_HEIGHT;
-      const displayWidth = this.app.renderer.width || this.app.view.width;
-      const displayHeight = this.app.renderer.height || this.app.view.height;
       
-      // Safety check for dimensions
-      if (!displayWidth || !displayHeight) {
-        console.error('Invalid display dimensions');
-        return { x: 0, y: 0 };
-      }
-      
-      // Calculate scale and offset
-      const scaleRatio = Math.min(displayWidth / logicalWidth, displayHeight / logicalHeight);
+      // Calculate scale and offset (same as initPixi)
+      const scaleRatio = Math.min(canvasWidth / logicalWidth, canvasHeight / logicalHeight);
       const scaledWidth = logicalWidth * scaleRatio;
       const scaledHeight = logicalHeight * scaleRatio;
-      const offsetX = (displayWidth - scaledWidth) / 2;
-      const offsetY = (displayHeight - scaledHeight) / 2;
+      const offsetX = (canvasWidth - scaledWidth) / 2;
+      const offsetY = (canvasHeight - scaledHeight) / 2;
       
       // Convert to logical coordinates
       let logicalX = (canvasX - offsetX) / scaleRatio;
       let logicalY = (canvasY - offsetY) / scaleRatio;
       
-      // If player 2, flip coordinates
+      // If player 2, flip coordinates (because arena is rotated visually)
       if (this.playerNumber === 2) {
         logicalX = logicalWidth - logicalX;
         logicalY = logicalHeight - logicalY;
@@ -327,7 +320,7 @@ export class Game {
       logicalX = Math.max(0, Math.min(logicalWidth, logicalX));
       logicalY = Math.max(0, Math.min(logicalHeight, logicalY));
       
-      console.log(`Mouse: canvas(${canvasX.toFixed(0)},${canvasY.toFixed(0)}) -> logical(${logicalX.toFixed(0)},${logicalY.toFixed(0)}) [player ${this.playerNumber}] display(${displayWidth}x${displayHeight})`);
+      console.log(`🖱️ Mouse: canvas(${canvasX.toFixed(0)},${canvasY.toFixed(0)}) -> logical(${logicalX.toFixed(0)},${logicalY.toFixed(0)}) [P${this.playerNumber}]`);
       
       return { x: logicalX, y: logicalY };
     };
@@ -338,11 +331,8 @@ export class Game {
       
       // Validate coordinates
       if (isNaN(coords.x) || isNaN(coords.y)) {
-        console.warn('Invalid coordinates from getCoords');
         return;
       }
-      
-      this.currentMousePos = coords;
       
       if (!this.cardSystem.hasSelection()) {
         this.arena.hideSpawnIndicator();
@@ -363,25 +353,29 @@ export class Game {
     // Mouse/Touch click
     const handleClick = (e) => {
       const selection = this.cardSystem.getSelectedCard();
-      if (!selection.card) return;
+      if (!selection.card) {
+        console.log('❌ No card selected');
+        return;
+      }
       
       const coords = getCoords(e);
       
       // Validate coordinates before proceeding
       if (isNaN(coords.x) || isNaN(coords.y)) {
-        console.error('Cannot spawn: invalid coordinates');
+        console.error('❌ Cannot spawn: invalid coordinates');
         return;
       }
       
-      console.log(`Click at: x=${coords.x.toFixed(1)}, y=${coords.y.toFixed(1)}`);
+      console.log(`🎯 Click at: client(${coords.x.toFixed(0)},${coords.y.toFixed(0)})`);
       
       if (this.arena.isValidSpawnPosition(coords.x, coords.y)) {
+        console.log('✅ Valid position, spawning...');
         this.spawnUnit(selection.card.id, coords.x, coords.y, selection.index);
         this.cardSystem.deselectCard();
         this.arena.hideSpawnIndicator();
         this.app.view.style.cursor = 'default';
       } else {
-        console.warn(`Invalid spawn: x=${coords.x}, y=${coords.y}, midY=${CONFIG.CANVAS_HEIGHT/2}`);
+        console.warn(`❌ Invalid spawn position: y=${coords.y}, midY=${CONFIG.CANVAS_HEIGHT/2}, needsY>${CONFIG.CANVAS_HEIGHT/2}`);
       }
     };
     
@@ -405,11 +399,24 @@ export class Game {
    * Spawn a unit
    */
   spawnUnit(unitType, x, y, cardIndex) {
-    // Ensure coordinates are valid numbers
-    const validX = Math.round(x);
-    const validY = Math.round(y);
+    // Client coordinates are already in logical space
+    // But we need to send them to server in "physical" arena space
     
-    console.log(`Sending spawn to server: unitType=${unitType}, x=${validX}, y=${validY}, cardIndex=${cardIndex}, playerNumber=${this.playerNumber}`);
+    let serverX = x;
+    let serverY = y;
+    
+    // If player 2, we need to flip back to server's coordinate system
+    // because server sees arena from player 1's perspective
+    if (this.playerNumber === 2) {
+      serverX = CONFIG.CANVAS_WIDTH - x;
+      serverY = CONFIG.CANVAS_HEIGHT - y;
+    }
+    
+    // Ensure coordinates are valid numbers
+    const validX = Math.round(serverX);
+    const validY = Math.round(serverY);
+    
+    console.log(`Spawning: client(${x.toFixed(0)},${y.toFixed(0)}) -> server(${validX},${validY}) [player ${this.playerNumber}]`);
     
     if (isNaN(validX) || isNaN(validY)) {
       console.error('Invalid coordinates, not sending to server');
@@ -533,4 +540,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-}
+        }
