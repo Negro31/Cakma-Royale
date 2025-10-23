@@ -33,13 +33,26 @@ function generateId() {
 function validateSpawnPosition(x, y, playerSide, arenaWidth, arenaHeight) {
   // Check if position is within arena bounds
   if (x < 0 || x > arenaWidth || y < 0 || y > arenaHeight) {
+    Logger.debug(`Spawn rejected: out of bounds (x=${x}, y=${y})`);
     return false;
   }
   
   // Check if position is on player's side
   const midY = arenaHeight / 2;
-  if (playerSide === 1 && y < midY) return false; // Player 1 spawns in bottom half
-  if (playerSide === 2 && y > midY) return false; // Player 2 spawns in top half
+  
+  // Player 1 spawns in bottom half (y > midY)
+  // Player 2 spawns in top half (y < midY)
+  if (playerSide === 1) {
+    if (y < midY) {
+      Logger.debug(`Player 1 spawn rejected: wrong side (y=${y}, midY=${midY})`);
+      return false;
+    }
+  } else if (playerSide === 2) {
+    if (y > midY) {
+      Logger.debug(`Player 2 spawn rejected: wrong side (y=${y}, midY=${midY})`);
+      return false;
+    }
+  }
   
   return true;
 }
