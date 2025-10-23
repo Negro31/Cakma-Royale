@@ -102,12 +102,25 @@ export class Network {
    */
   spawnUnit(unitType, x, y, cardIndex) {
     if (this.socket && this.connected) {
-      this.socket.emit('spawnUnit', {
-        unitType,
-        x,
-        y,
-        cardIndex
-      });
+      // Ensure all values are valid
+      const data = {
+        unitType: String(unitType),
+        x: Number(x),
+        y: Number(y),
+        cardIndex: Number(cardIndex)
+      };
+      
+      console.log('Sending spawnUnit:', data);
+      
+      // Double check for NaN
+      if (isNaN(data.x) || isNaN(data.y)) {
+        console.error('Prevented sending NaN coordinates to server');
+        return;
+      }
+      
+      this.socket.emit('spawnUnit', data);
+    } else {
+      console.error('Cannot spawn unit: socket not connected');
     }
   }
   
@@ -139,4 +152,4 @@ export class Network {
       this.connected = false;
     }
   }
-        }
+}
