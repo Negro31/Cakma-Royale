@@ -58,6 +58,6 @@ export const CONFIG = {
   },
   
   // Debug
-  DEBUG_MODE: false,
+  DEBUG_MODE: false, // Set to true to see spawn zones
   SHOW_FPS: false
 };
