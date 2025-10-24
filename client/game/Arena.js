@@ -180,4 +180,4 @@ export class Arena {
     this.clear();
     this.container.destroy({ children: true });
   }
-        }
+}
