@@ -9,8 +9,10 @@ const GAME_CONSTANTS = {
   // Game mechanics
   STARTING_ELIXIR: 5,
   MAX_ELIXIR: 10,
-  ELIXIR_REGEN_RATE: 1, // per second
-  ELIXIR_REGEN_INTERVAL: 1000, // milliseconds
+  ELIXIR_REGEN_RATE: 1, // per second (normal speed)
+  ELIXIR_REGEN_RATE_2X: 2, // per second (2x speed after 1 minute)
+  ELIXIR_REGEN_INTERVAL: 100, // milliseconds (update frequency)
+  ELIXIR_2X_START_TIME: 60000, // Start 2x elixir after 1 minute (60000ms)
   
   // Tower positions (relative to arena)
   TOWER_POSITIONS: {
