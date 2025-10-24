@@ -399,24 +399,15 @@ export class Game {
    * Spawn a unit
    */
   spawnUnit(unitType, x, y, cardIndex) {
-    // Client coordinates are already in logical space
-    // But we need to send them to server in "physical" arena space
-    
-    let serverX = x;
-    let serverY = y;
-    
-    // If player 2, we need to flip back to server's coordinate system
-    // because server sees arena from player 1's perspective
-    if (this.playerNumber === 2) {
-      serverX = CONFIG.CANVAS_WIDTH - x;
-      serverY = CONFIG.CANVAS_HEIGHT - y;
-    }
+    // IMPORTANT: Don't flip coordinates!
+    // Client sees rotated view but sends logical coordinates directly
+    // Server will handle the physical positioning
     
     // Ensure coordinates are valid numbers
-    const validX = Math.round(serverX);
-    const validY = Math.round(serverY);
+    const validX = Math.round(x);
+    const validY = Math.round(y);
     
-    console.log(`Spawning: client(${x.toFixed(0)},${y.toFixed(0)}) -> server(${validX},${validY}) [player ${this.playerNumber}]`);
+    console.log(`🚀 Spawning: client(${validX},${validY}) playerNum=${this.playerNumber}`);
     
     if (isNaN(validX) || isNaN(validY)) {
       console.error('Invalid coordinates, not sending to server');
@@ -540,4 +531,4 @@ export class Game {
     console.error(message);
     alert(message);
   }
-        }
+      }
