@@ -67,8 +67,16 @@ class Player {
   /**
    * Update elixir over time
    */
-  updateElixir(deltaTime) {
-    const elixirToAdd = (CONSTANTS.ELIXIR_REGEN_RATE * deltaTime) / 1000;
+  updateElixir(deltaTime, elapsedMatchTime) {
+    // Determine elixir regen rate based on match time
+    let regenRate = CONSTANTS.ELIXIR_REGEN_RATE;
+    
+    // After 1 minute, use 2x speed
+    if (elapsedMatchTime >= CONSTANTS.ELIXIR_2X_START_TIME) {
+      regenRate = CONSTANTS.ELIXIR_REGEN_RATE_2X;
+    }
+    
+    const elixirToAdd = (regenRate * deltaTime) / 1000;
     this.elixir = Math.min(this.elixir + elixirToAdd, CONSTANTS.MAX_ELIXIR);
   }
   
