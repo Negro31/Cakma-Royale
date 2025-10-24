@@ -158,8 +158,11 @@ class Match {
     const deltaTime = now - this.lastTickTime;
     this.lastTickTime = now;
     
-    // Update player elixir
-    this.players.forEach(player => player.updateElixir(deltaTime));
+    // Calculate elapsed time since match start
+    const elapsedTime = now - this.startTime;
+    
+    // Update player elixir with time-based boost
+    this.players.forEach(player => player.updateElixir(deltaTime, elapsedTime));
     
     // Update units
     this.updateUnits(deltaTime);
@@ -171,7 +174,7 @@ class Match {
     this.checkWinConditions();
     
     // Check timeout
-    if (now - this.startTime >= CONSTANTS.MATCH_DURATION) {
+    if (elapsedTime >= CONSTANTS.MATCH_DURATION) {
       this.endMatch(this.determineWinnerByTowerHP());
     }
   }
@@ -181,14 +184,15 @@ class Match {
    */
   updateUnits(deltaTime) {
     const deltaSeconds = deltaTime / 1000;
+    const unitsToDelete = [];
     
     this.units.forEach((unit, unitId) => {
       if (!unit.alive) {
-        this.units.delete(unitId);
+        unitsToDelete.push(unitId);
         return;
       }
       
-      // Find target
+      // Find target only if current target is invalid
       if (!unit.target || !unit.target.alive) {
         unit.target = this.findNearestTarget(unit);
       }
@@ -211,6 +215,9 @@ class Match {
         }
       }
     });
+    
+    // Clean up dead units
+    unitsToDelete.forEach(id => this.units.delete(id));
   }
   
   /**
@@ -261,29 +268,35 @@ class Match {
       return nearest;
     }
     
-    // Other units: prioritize enemy units first, then towers
-    // Check enemy units first
+    // Other units: Check for nearby enemies first (within aggro range)
+    const AGGRO_RANGE = 250; // Units will target enemies within this range
+    
+    // First priority: enemy units within aggro range
     this.units.forEach(otherUnit => {
       if (otherUnit.owner !== unit.owner && otherUnit.alive) {
         const dist = MathUtils.distance(unit.x, unit.y, otherUnit.x, otherUnit.y);
-        if (dist < minDist) {
+        if (dist <= AGGRO_RANGE && dist < minDist) {
           minDist = dist;
           nearest = otherUnit;
         }
       }
     });
     
-    // If no enemy units nearby (within reasonable range), target towers
-    if (!nearest || minDist > 200) {
-      const enemyTowers = this.towers.filter(t => t.owner !== unit.owner && t.alive);
-      enemyTowers.forEach(tower => {
-        const dist = MathUtils.distance(unit.x, unit.y, tower.x, tower.y);
-        if (dist < minDist) {
-          minDist = dist;
-          nearest = tower;
-        }
-      });
+    // If enemy found within aggro range, target it
+    if (nearest) {
+      return nearest;
     }
+    
+    // Second priority: nearest tower (default behavior)
+    minDist = Infinity;
+    const enemyTowers = this.towers.filter(t => t.owner !== unit.owner && t.alive);
+    enemyTowers.forEach(tower => {
+      const dist = MathUtils.distance(unit.x, unit.y, tower.x, tower.y);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = tower;
+      }
+    });
     
     return nearest;
   }
@@ -346,6 +359,18 @@ class Match {
       return false;
     }
     
+    // Convert coordinates based on player side
+    // Player 2 sends from their rotated view, we need to flip to physical arena coords
+    let physicalX = x;
+    let physicalY = y;
+    
+    if (player.playerNumber === 2) {
+      physicalX = CONSTANTS.ARENA_WIDTH - x;
+      physicalY = CONSTANTS.ARENA_HEIGHT - y;
+    }
+    
+    Logger.debug(`Spawn: player=${player.playerNumber}, input(${x.toFixed(0)},${y.toFixed(0)}) -> physical(${physicalX.toFixed(0)},${physicalY.toFixed(0)})`);
+    
     // Determine spawn count (archers spawn 2, goblins spawn 4, others spawn 1)
     const spawnCount = unitData.spawnCount || 1;
     
@@ -356,8 +381,8 @@ class Match {
       // Offset position for multiple spawns
       const offset = 30;
       const angle = (i / spawnCount) * Math.PI * 2;
-      const spawnX = x + Math.cos(angle) * offset;
-      const spawnY = y + Math.sin(angle) * offset;
+      const spawnX = physicalX + Math.cos(angle) * offset;
+      const spawnY = physicalY + Math.sin(angle) * offset;
       
       const unit = {
         id: unitId,
@@ -377,7 +402,7 @@ class Match {
       };
       
       this.units.set(unitId, unit);
-      Logger.debug(`Unit ${unitId} (${unitType}) spawned by player ${player.playerNumber}`);
+      Logger.debug(`Unit ${unitId} (${unitType}) spawned at physical(${spawnX.toFixed(0)},${spawnY.toFixed(0)})`);
     }
     
     // Draw new card for player
@@ -492,6 +517,10 @@ class Match {
    * Get full game state
    */
   getState() {
+    // Limit units sent (only closest 50 units to reduce bandwidth)
+    const allUnits = Array.from(this.units.values());
+    const limitedUnits = allUnits.slice(0, 50); // Max 50 units
+    
     return {
       matchId: this.id,
       state: this.state,
@@ -504,21 +533,22 @@ class Match {
         owner: t.owner,
         x: t.x,
         y: t.y,
-        hp: t.hp,
+        hp: Math.round(t.hp),
         maxHp: t.maxHp,
         alive: t.alive
       })),
-      units: Array.from(this.units.values()).map(u => ({
+      units: limitedUnits.map(u => ({
         id: u.id,
         type: u.type,
         owner: u.owner,
-        x: Math.round(u.x * 10) / 10,
-        y: Math.round(u.y * 10) / 10,
-        hp: u.hp,
+        x: Math.round(u.x),
+        y: Math.round(u.y),
+        hp: Math.round(u.hp),
         maxHp: u.maxHp,
         alive: u.alive
       })),
-      winner: this.winner
+      winner: this.winner,
+      unitCount: this.units.size // For debugging
     };
   }
 }
