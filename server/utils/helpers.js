@@ -37,23 +37,18 @@ function validateSpawnPosition(x, y, playerSide, arenaWidth, arenaHeight) {
     return false;
   }
   
-  // Check if position is on player's side
+  // Both players send coordinates from their perspective (bottom = their side)
+  // Player always spawns in bottom half from their view (y > midY)
+  // This is same for both players
   const midY = arenaHeight / 2;
   
-  // Player 1 spawns in bottom half (y > midY)
-  // Player 2 spawns in top half (y < midY)
-  if (playerSide === 1) {
-    if (y < midY) {
-      Logger.debug(`Player 1 spawn rejected: wrong side (y=${y}, midY=${midY})`);
-      return false;
-    }
-  } else if (playerSide === 2) {
-    if (y > midY) {
-      Logger.debug(`Player 2 spawn rejected: wrong side (y=${y}, midY=${midY})`);
-      return false;
-    }
+  // Always check y > midY (bottom half from sender's perspective)
+  if (y <= midY) {
+    Logger.debug(`Player ${playerSide} spawn rejected: not in bottom half (y=${y.toFixed(1)}, midY=${midY})`);
+    return false;
   }
   
+  Logger.debug(`✅ Spawn accepted: player=${playerSide}, x=${x.toFixed(1)}, y=${y.toFixed(1)}`);
   return true;
 }
 
